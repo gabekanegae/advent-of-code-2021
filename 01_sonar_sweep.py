@@ -4,7 +4,7 @@
 
 import AOCUtils
 
-################################
+##############################
 
 depths = AOCUtils.loadInput(1)
 
