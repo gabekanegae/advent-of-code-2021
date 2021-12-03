@@ -30,27 +30,33 @@ epsilon = ''.join({'0': '1', '1': '0'}[i] for i in gamma)
 power_consumption = int(gamma, 2) * int(epsilon, 2)
 print(f'Part 1: {power_consumption}')
 
-report_set = set(report)
-pos = 0
-while len(report_set) > 1:
-    most_common = get_most_common_bit(report_set, pos, tiebreak='1')
-    
-    for r in list(report_set):
-        if r[pos] != most_common:
-            report_set.remove(r)
-    pos += 1
-oxygen = report_set.pop()
+report.sort()
 
-report_set = set(report)
 pos = 0
-while len(report_set) > 1:
-    least_common = get_least_common_bit(report_set, pos, tiebreak='0')
-    
-    for r in list(report_set):
-        if r[pos] != least_common:
-            report_set.remove(r)
+l, r = 0, len(report)-1
+while l < r:
+    most_common = get_most_common_bit(report[l:r+1], pos, tiebreak='1')
+    if most_common == '0':
+        while report[r][pos] == '1':
+            r -= 1
+    else:
+        while report[l][pos] == '0':
+            l += 1
     pos += 1
-co2 = report_set.pop()
+oxygen = report[l]
+
+pos = 0
+l, r = 0, len(report)-1
+while l < r:
+    least_common = get_least_common_bit(report[l:r+1], pos, tiebreak='0')
+    if least_common == '0':
+        while report[r][pos] == '1':
+            r -= 1
+    else:
+        while report[l][pos] == '0':
+            l += 1
+    pos += 1
+co2 = report[l]
 
 life_support = int(oxygen, 2) * int(co2, 2)
 print(f'Part 2: {life_support}')
