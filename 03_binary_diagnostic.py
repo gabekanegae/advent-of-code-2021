@@ -4,7 +4,7 @@
 
 import AOCUtils
 
-def get_most_common_bit(report, pos):
+def get_most_common_bit(report, pos, tiebreak=None):
     zeros = [r[pos] for r in report].count('0')
     ones = [r[pos] for r in report].count('1')
 
@@ -13,11 +13,11 @@ def get_most_common_bit(report, pos):
     elif zeros > ones:
         return '0'
     else:
-        return None
+        return tiebreak
 
-def get_least_common_bit(report, pos):
+def get_least_common_bit(report, pos, tiebreak=None):
     most = get_most_common_bit(report, pos)
-    return {'0': '1', '1': '0', None: None}[most]
+    return {'0': '1', '1': '0', None: tiebreak}[most]
 
 ####################################
 
@@ -33,9 +33,7 @@ print(f'Part 1: {power_consumption}')
 report_set = set(report)
 pos = 0
 while len(report_set) > 1:
-    most_common = get_most_common_bit(report_set, pos)
-    if most_common is None:
-        most_common = '1'
+    most_common = get_most_common_bit(report_set, pos, tiebreak='1')
     
     for r in list(report_set):
         if r[pos] != most_common:
@@ -46,9 +44,7 @@ oxygen = report_set.pop()
 report_set = set(report)
 pos = 0
 while len(report_set) > 1:
-    least_common = get_least_common_bit(report_set, pos)
-    if least_common is None:
-        least_common = '0'
+    least_common = get_least_common_bit(report_set, pos, tiebreak='0')
     
     for r in list(report_set):
         if r[pos] != least_common:
