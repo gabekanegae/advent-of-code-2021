@@ -6,7 +6,7 @@ import AOCUtils
 
 ########################
 
-course = AOCUtils.loadInput(2)
+course = AOCUtils.load_input(2)
 
 pos, depth = 0, 0
 for step in course:
@@ -20,8 +20,8 @@ for step in course:
     elif direction == 'up':
         depth -= delta
 
-ans = pos * depth
-print(f'Part 1: {ans}')
+p1 = pos * depth
+print(f'Part 1: {p1}')
 
 pos, depth, aim = 0, 0, 0
 for step in course:
@@ -36,7 +36,7 @@ for step in course:
     elif direction == 'up':
         aim -= delta
 
-ans = pos * depth
-print(f'Part 2: {ans}')
+p2 = pos * depth
+print(f'Part 2: {p2}')
 
-AOCUtils.printTimeTaken()
+AOCUtils.print_time_taken()

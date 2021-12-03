@@ -6,7 +6,7 @@ import AOCUtils
 
 ##############################
 
-depths = AOCUtils.loadInput(1)
+depths = AOCUtils.load_input(1)
 
 increases = 0
 for i in range(1, len(depths)):
@@ -24,4 +24,4 @@ for i in range(1, len(depths)-2):
 
 print(f'Part 2: {increases}')
 
-AOCUtils.printTimeTaken()
+AOCUtils.print_time_taken()

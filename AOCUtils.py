@@ -1,19 +1,19 @@
 from time import time
 import os
 
-_startTime = None
+_start_time = None
 
-def loadInput(day):
-    global _startTime
+def load_input(day):
+    global _start_time
 
     day = str(day)
-    filename = "input" + day.zfill(2) + ".txt"
-    filepath = os.path.join("inputs", filename)
+    filename = f'input{day.zfill(2)}.txt'
+    filepath = os.path.join('inputs', filename)
 
     with open(filepath) as f:
-        content = [l.rstrip("\n") for l in f.readlines()]
+        content = [l.rstrip('\n') for l in f.readlines()]
 
-    _startTime = time()
+    _start_time = time()
 
     if len(content) == 1:
         try:
@@ -29,8 +29,9 @@ def loadInput(day):
         except:
             return content
 
-def printTimeTaken():
-    global _startTime
-    _endTime = time()
+def print_time_taken():
+    global _start_time
+    _end_time = time()
     
-    print("Time: {:.3f}s".format(_endTime - _startTime))
+    delta = _end_time - _start_time
+    print('Time: {:.3f}s'.format(delta))
