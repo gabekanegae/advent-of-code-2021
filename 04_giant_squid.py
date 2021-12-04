@@ -4,32 +4,36 @@
 
 import AOCUtils
 
-def get_sum_of_unmarked_numbers(board):
-    total = 0
-    for i in range(grid_size):
-        for j in range(grid_size):
-            if board[i][j] != -1:
-                total += board[i][j]
+class Board:
+    def __init__(self, grid):
+        self._win_rows = []
 
-    return total
+        for i in range(grid_size):
+            self._win_rows.append(set(grid[i][j] for j in range(grid_size)))
+            self._win_rows.append(set(grid[j][i] for j in range(grid_size)))
+
+    def mark_number(self, number_drawn):
+        for row in self._win_rows:
+            row.discard(number_drawn)
+
+    @property
+    def has_won(self):
+        return any(len(row) == 0 for row in self._win_rows)
+
+    @property
+    def unmarked_sum(self):
+        # Each number is summed twice, halve the result to get the real sum
+        return sum(sum(row) for row in self._win_rows) // 2
 
 def get_win_order(boards, numbers_drawn):
     for number_drawn in numbers_drawn:
-        for board_idx in range(len(boards)):
-            if boards[board_idx] is None: continue
+        for board in boards:
+            if board.has_won: continue
 
-            for i in range(grid_size):
-                for j in range(grid_size):
-                    if boards[board_idx][i][j] == number_drawn:
-                        boards[board_idx][i][j] = -1
+            board.mark_number(number_drawn)
 
-            for i in range(grid_size):
-                if all(boards[board_idx][i][j] == -1 for j in range(grid_size)) or \
-                   all(boards[board_idx][j][i] == -1 for j in range(grid_size)):
-                    yield get_sum_of_unmarked_numbers(boards[board_idx]) * number_drawn
-
-                    boards[board_idx] = None
-                    break
+            if board.has_won:
+                yield board.unmarked_sum * number_drawn
 
 ##############################
 
@@ -40,7 +44,9 @@ numbers_drawn = list(map(int, bingo[0].split(',')))
 
 boards = []
 for raw_board in '\n'.join(bingo[2:]).split('\n\n'):
-    board = [list(map(int, row.split())) for row in raw_board.split('\n')]
+    grid = [list(map(int, row.split())) for row in raw_board.split('\n')]
+    board = Board(grid)
+
     boards.append(board)
 
 win_order = list(get_win_order(boards, numbers_drawn))
