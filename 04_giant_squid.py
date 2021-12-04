@@ -8,9 +8,12 @@ class Board:
     def __init__(self, grid):
         self._win_rows = []
 
-        for i in range(grid_size):
-            self._win_rows.append(set(grid[i][j] for j in range(grid_size)))
-            self._win_rows.append(set(grid[j][i] for j in range(grid_size)))
+        # Although it's specified that r = c = 5, this generalizes it for any r and c
+        r, c = len(grid), len(grid[0])
+        for i in range(r):
+            self._win_rows.append(set(grid[i][j] for j in range(c)))
+        for i in range(c):
+            self._win_rows.append(set(grid[j][i] for j in range(r)))
 
     def mark_number(self, number_drawn):
         for row in self._win_rows:
@@ -38,7 +41,6 @@ def get_win_order(boards, numbers_drawn):
 ##############################
 
 bingo = AOCUtils.load_input(4)
-grid_size = 5
 
 numbers_drawn = list(map(int, bingo[0].split(',')))
 
