@@ -39,13 +39,9 @@ grid_size = 5
 numbers_drawn = list(map(int, bingo[0].split(',')))
 
 boards = []
-board = []
-for line in bingo[2:]:
-    if line != '':
-        board.append(list(map(int, line.split())))
-    else:
-        boards.append(board)
-        board = []
+for raw_board in '\n'.join(bingo[2:]).split('\n\n'):
+    board = [list(map(int, row.split())) for row in raw_board.split('\n')]
+    boards.append(board)
 
 win_order = list(get_win_order(boards, numbers_drawn))
 
