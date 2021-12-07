@@ -6,7 +6,7 @@ from collections import deque
 import AOCUtils
 
 def get_lanternfish(timers, day):
-    new_fish = deque([timers.count(i) for i in range(9)])
+    new_fish = deque(timers.count(i) for i in range(9))
 
     for _ in range(day):
         new_fish[7] += new_fish[0]
