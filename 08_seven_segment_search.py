@@ -4,7 +4,9 @@
 
 import AOCUtils
 
-def decode(entry_in, entry_out):
+def decode(entry):
+    entry_in, entry_out = entry
+
     mapping = dict()
 
     # [1, 4, 7, 8]: can be determined instantly by their segment amount
@@ -44,12 +46,12 @@ entries = []
 for raw_entry in raw_entries:
     raw_entry_in, raw_entry_out = raw_entry.split(' | ')
 
-    entry_in = tuple(frozenset(s) for s in raw_entry_in.split())
-    entry_out = tuple(frozenset(s) for s in raw_entry_out.split())
+    entry_in = list(map(frozenset, raw_entry_in.split()))
+    entry_out = list(map(frozenset, raw_entry_out.split()))
 
     entries.append((entry_in, entry_out))
 
-decoded_entries = [decode(entry_in, entry_out) for entry_in, entry_out in entries]
+decoded_entries = list(map(decode, entries))
 
 p1 = sum(''.join(decoded_entries).count(i) for i in '1478')
 print(f'Part 1: {p1}')
