@@ -26,36 +26,30 @@ def get_low_points(cave):
 
     return low_points
 
-def get_basin_sizes(cave, low_points):
-    basin_sizes = []
+def get_basin_size(cave, low_point):
+    queue = deque([low_point])
+    visited = set()
+    while queue:
+        x, y = queue.popleft()
 
-    for low_point in low_points:
-        queue = deque([low_point])
-        visited = set()
-        while queue:
-            x, y = queue.popleft()
+        if (x, y) in visited: continue
+        visited.add((x, y))
 
-            if (x, y) in visited: continue
-            visited.add((x, y))
+        for dx, dy in directions:
+            nxt_x, nxt_y = x + dx, y + dy
 
-            for dx, dy in directions:
-                nxt_x, nxt_y = x + dx, y + dy
+            # Skip if OOB
+            if not (0 <= nxt_x < cave_size_x and 0 <= nxt_y < cave_size_y): continue
 
-                # Skip if OOB
-                if not (0 <= nxt_x < cave_size_x and 0 <= nxt_y < cave_size_y): continue
+            # Skip if not higher than current
+            if not (cave[nxt_x][nxt_y] > cave[x][y]): continue
 
-                # Skip if not higher than current
-                if not (cave[nxt_x][nxt_y] > cave[x][y]): continue
+            # Skip 9s
+            if cave[nxt_x][nxt_y] == 9: continue
 
-                # Skip 9s
-                if cave[nxt_x][nxt_y] == 9: continue
+            queue.append((nxt_x, nxt_y))
 
-                queue.append((nxt_x, nxt_y))
-
-        basin_size = len(visited)
-        basin_sizes.append(basin_size)
-
-    return basin_sizes
+    return len(visited)
 
 ##############################
 
@@ -67,12 +61,13 @@ cave = [list(map(int, str(r).zfill(cave_size_y))) for r in AOCUtils.load_input(9
 cave_size_x = len(cave)
 low_points = get_low_points(cave)
 
-risk_levels = sum(cave[i][j] for i, j in low_points) + len(low_points)
+risk_levels = sum(1 + cave[i][j] for i, j in low_points)
 print(f'Part 1: {risk_levels}')
 
-basins = sorted(get_basin_sizes(cave, low_points), reverse=True)
+basin_sizes = [get_basin_size(cave, low_point) for low_point in low_points]
+basin_sizes.sort(reverse=True)
 
-p2 = basins[0] * basins[1] * basins[2]
+p2 = basin_sizes[0] * basin_sizes[1] * basin_sizes[2]
 print(f'Part 2: {p2}')
 
 AOCUtils.print_time_taken()
