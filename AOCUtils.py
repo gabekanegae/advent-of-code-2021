@@ -1,4 +1,4 @@
-from time import time
+from time import perf_counter
 import os
 
 _start_time = None
@@ -6,14 +6,14 @@ _start_time = None
 def load_input(day):
     global _start_time
 
+    _start_time = perf_counter()
+
     day = str(day)
     filename = f'input{day.zfill(2)}.txt'
     filepath = os.path.join('inputs', filename)
 
     with open(filepath) as f:
         content = [l.rstrip('\n') for l in f.readlines()]
-
-    _start_time = time()
 
     if len(content) == 1:
         try:
@@ -31,7 +31,7 @@ def load_input(day):
 
 def print_time_taken():
     global _start_time
-    _end_time = time()
+    _end_time = perf_counter()
     
     delta = _end_time - _start_time
     print('Time: {:.3f}s'.format(delta))
