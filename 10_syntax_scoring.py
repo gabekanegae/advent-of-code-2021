@@ -15,7 +15,7 @@ def get_syntax_error_score(line):
         if c in chunk_open:
             stack.append(c)
         elif c in chunk_close:
-            if not (stack and stack.pop() == chunk_close[c]):
+            if stack.pop() != chunk_close[c]:
                 return syntax_error_score_table[c]
 
     return 0
@@ -28,7 +28,7 @@ def get_autocomplete_score(line):
         if c in chunk_open:
             stack.append(c)
         elif c in chunk_close:
-            if stack and stack[-1] == chunk_close[c]:
+            if stack[-1] == chunk_close[c]:
                 stack.pop()
 
     score = 0
