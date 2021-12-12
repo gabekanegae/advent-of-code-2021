@@ -11,29 +11,33 @@ mov8 = [
     ]
 
 def update(grid):
-    will_flash = []
+    will_flash = set()
+    has_flashed = set()
 
     for i in range(grid_size):
         for j in range(grid_size):
             grid[i][j] += 1
             if grid[i][j] > 9:
-                will_flash.append((i, j))
+                will_flash.add((i, j))
 
     while will_flash:
         flash_x, flash_y = will_flash.pop()
+        has_flashed.add((flash_x, flash_y))
+
         for dx, dy in mov8:
             new_x, new_y = flash_x + dx, flash_y + dy
             if not (0 <= new_x < grid_size and 0 <= new_y < grid_size):
                 continue
 
-            grid[new_x][new_y] += 1
-            if grid[new_x][new_y] == 9+1:
-                will_flash.append((new_x, new_y))
+            if (new_x, new_y) in has_flashed:
+                continue
 
-    for i in range(grid_size):
-        for j in range(grid_size):
-            if grid[i][j] > 9:
-                grid[i][j] = 0
+            grid[new_x][new_y] += 1
+            if grid[new_x][new_y] > 9:
+                will_flash.add((new_x, new_y))
+
+    for (i, j) in has_flashed:
+        grid[i][j] = 0
 
 #################################
 
