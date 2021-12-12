@@ -22,8 +22,8 @@ def decode(entry):
     mapping[6] = next(s for s in possible_0_6_9 if not s > mapping[7])
     possible_0_9 = possible_0_6_9 - {mapping[6]}
 
-    # [0, 9]: only 9 is a superset of 4 - 7
-    mapping[9] = next(s for s in possible_0_9 if s > mapping[4] - mapping[7])
+    # [0, 9]: only 9 is a superset of 4
+    mapping[9] = next(s for s in possible_0_9 if s > mapping[4])
     mapping[0] = (possible_0_9 - {mapping[9]}).pop()
 
     # [2, 3, 5]: only 5 is a subset of 6
