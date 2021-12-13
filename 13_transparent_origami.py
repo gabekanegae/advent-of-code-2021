@@ -4,14 +4,37 @@
 
 import AOCUtils
 
-def print_paper(dots):
-    max_x = max(x for x, _ in dots)
-    max_y = max(y for _, y in dots)
+class Paper:
+    def __init__(self, dots):
+        self.dots = dots
 
-    for y in range(max_y+1):
-        for x in range(max_x+1):
-            print('##' if (x, y) in dots else '  ', end='')
-        print('')
+    def fold(self, fold_direction, fold_pos):
+        if fold_direction == 'x':
+            folded_dots = set(dot for dot in self.dots if dot[0] > fold_pos)
+
+            for x, y in folded_dots:
+                new_x = fold_pos - (x - fold_pos)
+                self.dots.add((new_x, y))
+        elif fold_direction == 'y':
+            folded_dots = set(dot for dot in self.dots if dot[1] > fold_pos)
+
+            for x, y in folded_dots:
+                new_y = fold_pos - (y - fold_pos)
+                self.dots.add((x, new_y))
+        
+        self.dots -= folded_dots
+        
+    def __str__(self):
+        max_x = max(x for x, _ in self.dots)
+        max_y = max(y for _, y in self.dots)
+
+        s = []
+        for y in range(max_y+1):
+            for x in range(max_x+1):
+                s.append('##' if (x, y) in self.dots else '  ')
+            s.append('\n')
+
+        return ''.join(s)
 
 #######################################
 
@@ -28,28 +51,15 @@ for raw_fold in raw_folds.splitlines():
 
     folds.append((fold_direction, fold_pos))
 
-part_1_complete = False
-for fold_direction, fold_pos in folds:
-    if fold_direction == 'y':
-        folded_dots = set(dot for dot in dots if dot[1] > fold_pos)
-        dots -= folded_dots
+paper = Paper(dots)
 
-        for dot_x, dot_y in folded_dots:
-            new_dot = (dot_x, fold_pos-(dot_y-fold_pos))
-            dots.add(new_dot)
-    elif fold_direction == 'x':
-        folded_dots = set(dot for dot in dots if dot[0] > fold_pos)
-        dots -= folded_dots
+for i, (fold_direction, fold_pos) in enumerate(folds):
+    paper.fold(fold_direction, fold_pos)
 
-        for dot_x, dot_y in folded_dots:
-            new_dot = (fold_pos-(dot_x-fold_pos), dot_y)
-            dots.add(new_dot)
-
-    if not part_1_complete:
+    if i == 0:
         print(f'Part 1: {len(dots)}')
-        part_1_complete = True
 
 print('Part 2:')
-print_paper(dots)
+print(paper)
 
 AOCUtils.print_time_taken()
