@@ -2,9 +2,10 @@
 # --- Day 17: Trick Shot --- #
 ##############################
 
+from math import sqrt, ceil
 import AOCUtils
 
-def launch_probe(velocity, target):
+def probe_reaches_target(velocity, target):
     vx, vy = velocity
     tx, ty = target
     px, py = 0, 0
@@ -34,6 +35,9 @@ def launch_probe(velocity, target):
 
 ##############################
 
+# Although all inputs seem to have target > x=0, this solution
+#  tries to apply for any target at all, including < x=0.
+
 raw_target = AOCUtils.load_input(17)
 
 target = ''.join(raw_target.split()[2:]).split(',')
@@ -52,9 +56,20 @@ max_y = (max_vy * (max_vy + 1)) // 2
 
 print(f'Part 1: {max_y}')
 
-# As vx never changes direction, it has to have
-# the same sign as the start/end of target
-v_lim_x = (min(0, target[0][0]), max(0, target[0][1]))
+# Probe only reaches the target if:
+#  [vx has the same sign as target closest edge] and
+#  [(vx + vx**2) // 2 >= target closest edge].
+
+# (vx+vx**2)//2 >= tce ===
+#   vx >= ceil((-1 + sqrt(1 + 8*tce)) / 2)
+
+if target[0][0] >= 0: # target >= x=0
+    min_x = ceil((-1 + sqrt(1 + 8 * target[0][0])) / 2)
+    v_lim_x = (min_x, target[0][1])
+else: # target < x=0
+    min_x = ceil((-1 + sqrt(1 + 8 * target[0][1])) / 2)
+    v_lim_x = (target[0][0], max(min_x, target[0][1]))
+
 # Lower bound:
 #  As vy is always decreasing:
 #  If target < y=0, vy can't be lower than the bottom of target.
@@ -71,11 +86,9 @@ hits = 0
 for vx in range(v_lim_x[0], v_lim_x[1]+1):
     for vy in range(v_lim_y[0], v_lim_y[1]+1):
         velocity = (vx, vy)
-        max_y = launch_probe(velocity, target)
 
-        if max_y is not None:
+        if probe_reaches_target(velocity, target):
             hits += 1
-            # print(f'({vx}, {vy}): {max_max_y} | {hits}')
 
 print(f'Part 2: {hits}')
 
