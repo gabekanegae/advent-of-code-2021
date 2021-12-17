@@ -44,13 +44,25 @@ raw_target = AOCUtils.load_input(17)
 target = ''.join(raw_target.split()[2:]).split(',')
 target = tuple(tuple(map(int, ax[2:].split('..'))) for ax in target)
 
-v_lim = ((-500, 500), (-500, 500))
+# As vx never changes direction, it has to have
+# the same sign as the start/end of target
+v_lim_x = (min(0, target[0][0]), max(0, target[0][1]))
+# Lower bound:
+#   As vy is always decreasing:
+#   If target starts below y=0, vy can't be lower than the bottom of target
+#   If target starts on/above y=0, vy >= 0
+# Upper bound:
+#   vy can't be higher than the target max abs y, as its trajectory
+#   would overshoot the target regardless of being above/below y=0,
+#   and regardless of it (potentially) reaching target when
+#   rising or falling, as the y-trajectory is symmetric
+v_lim_y = (min(0, target[1][0]), max(abs(target[1][0]), abs(target[1][1])))
 
 max_max_y = float('-inf')
 hits = 0
 
-for vx in range(v_lim[0][0], v_lim[0][1]):
-    for vy in range(v_lim[1][0], v_lim[1][1]):
+for vx in range(v_lim_x[0], v_lim_x[1]+1):
+    for vy in range(v_lim_y[0], v_lim_y[1]+1):
         velocity = (vx, vy)
         max_y = launch_probe(velocity, target)
 
