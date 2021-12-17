@@ -35,8 +35,9 @@ def probe_reaches_target(velocity, target):
 
 ##############################
 
-# Although all inputs seem to have target > x=0, this solution
-#  tries to apply for any target at all, including < x=0.
+# Although all inputs seem to have target > x=0 and target < y=0 (quadrant IV),
+#  this solution tries to make it work for any target at all, in any quadrant,
+#  so it's definitely way more complex than needed, as it tries to be more general.
 
 raw_target = AOCUtils.load_input(17)
 
@@ -50,10 +51,11 @@ target = tuple(tuple(map(int, ax[2:].split('..'))) for ax in target)
 # However, if target <= y=0, the probe falls and reaches y=0
 #  with y-velocity = -vy, its next step is y-velocity = -vy-1,
 #  so it overshoots the target by exactly one unit.
-# In that case, max_vy is [the target abs max y - 1].
-max_vy = max(abs(target[1][0])-1, abs(target[1][1]))
-max_y = (max_vy * (max_vy + 1)) // 2
+# In that case, max_abs_vy is [the target abs max y - 1].
+# If I considered only targets in quadrant IV, max_abs_vy == abs(target[1][0])-1.
+max_abs_vy = max(abs(target[1][0])-1, abs(target[1][1]))
 
+max_y = (max_abs_vy * (max_abs_vy + 1)) // 2
 print(f'Part 1: {max_y}')
 
 # Probe only reaches the target if:
