@@ -10,12 +10,11 @@ def sum_left(n, i, to_sum):
     # Grab end of value
     e = i
     while e >= 0 and not n[e].isnumeric(): e -= 1
-    if e < 0: return n
+    if e < 0: return n # OOB, no value to add to
 
     # Find start of value
     s = e
     if n[s-1].isnumeric(): s -= 1 # May be two digits
-
     e += 1
 
     # Sum to value and replace it
@@ -26,12 +25,11 @@ def sum_right(n, i, to_sum):
     # Grab start of value
     s = i
     while s < len(n) and not n[s].isnumeric(): s += 1
-    if s >= len(n): return n
+    if s >= len(n): return n # OOB, no value to add to
 
     # Find end of value
     e = s
     if n[e+1].isnumeric(): e += 1 # May be two digits
-
     e += 1
 
     # Sum to value and replace it
@@ -41,29 +39,28 @@ def sum_right(n, i, to_sum):
 def explode_snailfish(n):
     level = 0
     for i in range(len(n)):
-        if n[i] == '[':
-            level += 1
-        elif n[i] == ']':
-            level -= 1
+        if n[i] == '[': level += 1
+        elif n[i] == ']': level -= 1
 
-        if level == 5:
-            # Grab pair start and end
-            s = i
-            e = i
-            while n[e] != ']': e += 1
-            e += 1
+        if level < 5: continue
 
-            # Eval pair
-            pair = eval(n[s:e])
-            
-            # Replace pair with 0 
-            n = n[:s] + '0' + n[e:]
+        # Grab pair start and end
+        s = i
+        e = i
+        while n[e] != ']': e += 1
+        e += 1
 
-            # Sum values
-            n = sum_right(n, i+1, pair[1])
-            n = sum_left(n, i-1, pair[0])
+        # Eval pair
+        pair = eval(n[s:e])
+        
+        # Replace pair with 0 
+        n = n[:s] + '0' + n[e:]
 
-            return True, n
+        # Sum values
+        n = sum_right(n, i+1, pair[1])
+        n = sum_left(n, i-1, pair[0])
+
+        return True, n
 
     return False, n
 
@@ -71,12 +68,14 @@ def split_snailfish(n):
     for i in range(len(n)-1):
         s, e = i, i+2 # Assumes value will always be two digits
 
-        if n[s:e].isnumeric():
-            old = int(n[s:e])
-            a, b = old//2, old-(old//2)
+        if not n[s:e].isnumeric(): continue
+        
+        old = int(n[s:e])
+        a = old // 2
+        b = old - a
 
-            n = n[:s] + f'[{a},{b}]' + n[e:]
-            return True, n
+        n = n[:s] + f'[{a},{b}]' + n[e:]
+        return True, n
 
     return False, n
 
@@ -103,13 +102,12 @@ def magnitude(n):
 
 #############################
 
-raw_snailfish_numbers = AOCUtils.load_input(18)
-
-snailfish_numbers = list(map(eval, raw_snailfish_numbers))
+snailfish_numbers = list(map(eval, AOCUtils.load_input(18)))
 
 final_sum = reduce(add_snailfish, snailfish_numbers)
 
-print(f'Part 1: \'{magnitude(final_sum)}\'')
+final_magnitude = magnitude(final_sum)
+print(f'Part 1: \'{final_magnitude}\'')
 
 max_magnitude = max(magnitude(add_snailfish(a, b)) for a, b in permutations(snailfish_numbers, 2))
 print(f'Part 2: \'{max_magnitude}\'')
