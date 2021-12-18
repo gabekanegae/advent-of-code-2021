@@ -1,150 +1,132 @@
-import AOCUtils
+#############################
+# --- Day 18: Snailfish --- #
+#############################
 
-inp = AOCUtils.load_input(18)
+from itertools import permutations
+from functools import reduce
+import AOCUtils
 
 def list_to_str(s):
     return str(s).replace(' ', '')
 
-def str_to_list(s):
-    return eval(s)
+def sum_left(n, i, to_sum):
+    # Grab end of value
+    e = i
+    while e >= 0 and not n[e].isnumeric(): e -= 1
+    if e < 0: return n
 
-def sum_with_left_nr(n, i, tosum):
-    while i >= 0 and n[i] not in '0123456789':
-        i -= 1
-    
-    if i < 0: return n
+    # Find start of value
+    s = e
+    if n[s-1].isnumeric(): s -= 1 # May be two digits
 
+    e += 1
+
+    # Sum to value and replace it
+    new = int(n[s:e]) + to_sum
+    return n[:s] + str(new) + n[e:]
+
+def sum_right(n, i, to_sum):
+    # Grab start of value
     s = i
-    while s >= 0 and n[s] in '0123456789':
-        s -= 1
-
-    if s < 0: return n
-
-    s += 1
-
-    # print(' left', n)
-    nn = n[:s] + str(int(n[s:i+1])+tosum) + n[i+1:]
-    # print(' l>  ', nn)
-    return nn
-
-def sum_with_right_nr(n, i, tosum):
-    while i < len(n) and n[i] not in '0123456789':
-        i += 1
-    
-    if i >= len(n): return n
-
-    s = i
-    while s < len(n) and n[s] in '0123456789':
-        s += 1
-
+    while s < len(n) and not n[s].isnumeric(): s += 1
     if s >= len(n): return n
 
-    s -=1
+    # Find end of value
+    e = s
+    if n[e+1].isnumeric(): e += 1 # May be two digits
 
-    # print(' right', n)
-    nn = n[:i] + str(int(n[i:s+1])+tosum) + n[s+1:]
-    # print(' r>   ', nn)
-    return nn
+    e += 1
 
-def explode(n):
-    # n is list of lists
+    # Sum to value and replace it
+    new = int(n[s:e]) + to_sum
+    return n[:s] + str(new) + n[e:]
+
+def explode_snailfish(n):
     n = list_to_str(n)
-    old_n = n
 
-    i = 0
     level = 0
-    while i < len(n):
+    for i in range(len(n)):
         if n[i] == '[':
             level += 1
         elif n[i] == ']':
             level -= 1
 
         if level == 5:
-            ci = i
-            while n[ci] != ']':
-                ci += 1
+            # Grab pair start and end
+            s = i
+            e = i
+            while n[e] != ']': e += 1
+            e += 1
 
-            pair_bounds = (i, ci+1)
-            pair = eval(n[pair_bounds[0]:pair_bounds[1]])
+            # Eval pair
+            pair = eval(n[s:e])
             
-            # print('expl', n)
-            nn = n[:i] + '0' + n[ci+1:]
+            # Replace pair with 0 
+            n = n[:s] + '0' + n[e:]
 
-            l_before = len(nn)
-            nn = sum_with_left_nr(nn, i-1, pair[0])
-            l_after = len(nn)
-            xn = int(l_before!=l_after)
-            nn = sum_with_right_nr(nn, i+1+xn, pair[1])
-            # print('    ', nn)
+            # Sum left value
+            len_before = len(n)
+            n = sum_left(n, i-1, pair[0])
+            len_after = len(n)
+                
+            # Sum right value
+            if len_before == len_after:
+                # Result of left sum was one digit, string length is unchanged
+                n = sum_right(n, i+1, pair[1])
+            else:
+                # Result of left sum was two digits, string length is +1,
+                # thus all positions are shifted +1
+                n = sum_right(n, i+2, pair[1])
 
-            n =nn
             return True, eval(n)
 
-        i += 1
-
     return False, eval(n)
-    # n should be returned as list of lists
 
-def split(n):
-    # n is list of lists
+def split_snailfish(n):
     n = list_to_str(n)
 
-    i = 0
-    while i < len(n)-1:
-        # print(n[i], n[i+1], n[i].isalnum() and n[i+1].isalnum())
-        if n[i].isalnum() and n[i+1].isalnum():
-            a = int(n[i:i+2])
-            c = [a//2, a-(a//2)]
-            # print('split', n)
-            nn = n[:i] + list_to_str(c) + n[i+2:]
-            # print('     ', nn)
-            return True, nn
-        i += 1
+    for i in range(len(n)-1):
+        s, e = i, i+2 # Assumes value will always be two digits
+
+        if n[s:e].isnumeric():
+            old = int(n[s:e])
+            new = [old//2, old-(old//2)]
+
+            n = n[:s] + list_to_str(new) + n[e:]
+            return True, eval(n)
 
     return False, eval(n)
 
-def reduce(n):
+def reduce_snailfish(n):
     while True:
-        did_stuff, n = explode(n)
-        if did_stuff: continue
+        did_something, n = explode_snailfish(n)
+        if did_something: continue
 
-        did_stuff, n = split(n)
-        if not did_stuff:
-            break
+        did_something, n = split_snailfish(n)
+        if not did_something: break
 
     return n
 
-def add(a,b):
-    c = [a, b]
-    return reduce(c)
+def add_snailfish(a, b):
+    return reduce_snailfish([a, b])
 
-def mag(val):
-    if isinstance(val, int): return val
-    return 3 * mag(val[0]) + 2 * mag(val[1])
+def magnitude(n):
+    if isinstance(n, int):
+        return n
 
-######################################################
-ans = 0
+    return 3 * magnitude(n[0]) + 2 * magnitude(n[1])
 
-inpx = []
-for l in inp:
-    inpx.append(eval(l))
+#############################
 
-val = inpx[0]
-for v in inpx[1:]:
-    val = add(val, v)
+raw_snailfish_numbers = AOCUtils.load_input(18)
 
-ans = mag(val)
-print(f'Part 1: \'{ans}\'')
+snailfish_numbers = list(map(eval, raw_snailfish_numbers))
 
-from itertools import permutations
+final_sum = reduce(add_snailfish, snailfish_numbers)
 
-best = -1
-for a, b in permutations(inpx, 2):
-    m = mag(add(a,b))
-    best = max(best, m)
+print(f'Part 1: \'{magnitude(final_sum)}\'')
 
-ans=best
-
-print(f'Part 2: \'{ans}\'')
+max_magnitude = max(magnitude(add_snailfish(a, b)) for a, b in permutations(snailfish_numbers, 2))
+print(f'Part 2: \'{max_magnitude}\'')
 
 AOCUtils.print_time_taken()
