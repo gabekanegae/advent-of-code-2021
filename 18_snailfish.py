@@ -59,19 +59,9 @@ def explode_snailfish(n):
             # Replace pair with 0 
             n = n[:s] + '0' + n[e:]
 
-            # Sum left value
-            len_before = len(n)
+            # Sum values
+            n = sum_right(n, i+1, pair[1])
             n = sum_left(n, i-1, pair[0])
-            len_after = len(n)
-                
-            # Sum right value
-            if len_before == len_after:
-                # Result of left sum was one digit, string length is unchanged
-                n = sum_right(n, i+1, pair[1])
-            else:
-                # Result of left sum was two digits, string length is +1,
-                # thus all positions are shifted +1
-                n = sum_right(n, i+2, pair[1])
 
             return True, n
 
