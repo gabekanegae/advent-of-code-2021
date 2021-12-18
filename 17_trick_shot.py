@@ -60,33 +60,42 @@ print(f'Part 1: {max_y}')
 
 # Probe only reaches the target if:
 #  [vx has the same sign as target closest edge] and
-#  [(vx + vx**2) // 2 >= target closest edge].
+#  [vx is at least X so its triangular number reaches target]
+#              ^
+#              or at most, for targets < x=0
 
-# (vx+vx**2)//2 >= tce ===
-#   vx >= ceil((-1 + sqrt(1 + 8*tce)) / 2)
+# Triangular number to reach target means (swap '>=' with '<=' for targets < x=0):
+#   (X + X**2) // 2 >= target closest edge ===
+#   (X+X**2)//2 >= tce ===
+#   X >= ceil((-1 + sqrt(1 + 8*tce)) / 2)
 
 if target[0][0] >= 0: # target >= x=0
-    min_x = ceil((-1 + sqrt(1 + 8 * target[0][0])) / 2)
-    v_lim_x = (min_x, target[0][1])
+    target_closest_edge = target[0][0]
+    min_vx_to_reach_target = ceil((-1 + sqrt(1 + 8 * target_closest_edge)) / 2)
+    
+    min_vx = min_vx_to_reach_target
+    max_vx = target[0][1]
 else: # target < x=0
-    min_x = ceil((-1 + sqrt(1 + 8 * target[0][1])) / 2)
-    v_lim_x = (target[0][0], max(min_x, target[0][1]))
+    target_closest_edge = target[0][1]
+    max_vx_to_reach_target = ceil((-1 + sqrt(1 + 8 * target_closest_edge)) / 2)
+    
+    min_vx = target[0][0]
+    max_vx = max(max_vx_to_reach_target, target[0][1])
 
-# Lower bound:
 #  As vy is always decreasing:
-#  If target < y=0, vy can't be lower than the bottom of target.
-#  If target >= y=0, vy >= 0.
-# Upper bound:
+#   If target < y=0, vy can't be lower than the bottom of target.
+#   If target >= y=0, vy >= 0.
+min_vy = min(0, target[1][0])
+
 #  vy can't be higher than the target max abs y, as its trajectory
 #   would overshoot the target regardless of being above/below y=0,
 #   and regardless of it (potentially) reaching target when
 #   rising or falling, as the y-trajectory is symmetric.
-v_lim_y = (min(0, target[1][0]), max(abs(target[1][0]), abs(target[1][1])))
+max_vy = max(abs(target[1][0]), abs(target[1][1]))
 
 hits = 0
-
-for vx in range(v_lim_x[0], v_lim_x[1]+1):
-    for vy in range(v_lim_y[0], v_lim_y[1]+1):
+for vx in range(min_vx, max_vx+1):
+    for vy in range(min_vy, max_vy+1):
         velocity = (vx, vy)
 
         if probe_reaches_target(velocity, target):
