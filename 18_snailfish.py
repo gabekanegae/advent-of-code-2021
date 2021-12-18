@@ -6,9 +6,6 @@ from itertools import permutations
 from functools import reduce
 import AOCUtils
 
-def list_to_str(s):
-    return str(s).replace(' ', '')
-
 def sum_left(n, i, to_sum):
     # Grab end of value
     e = i
@@ -42,8 +39,6 @@ def sum_right(n, i, to_sum):
     return n[:s] + str(new) + n[e:]
 
 def explode_snailfish(n):
-    n = list_to_str(n)
-
     level = 0
     for i in range(len(n)):
         if n[i] == '[':
@@ -78,26 +73,26 @@ def explode_snailfish(n):
                 # thus all positions are shifted +1
                 n = sum_right(n, i+2, pair[1])
 
-            return True, eval(n)
+            return True, n
 
-    return False, eval(n)
+    return False, n
 
 def split_snailfish(n):
-    n = list_to_str(n)
-
     for i in range(len(n)-1):
         s, e = i, i+2 # Assumes value will always be two digits
 
         if n[s:e].isnumeric():
             old = int(n[s:e])
-            new = [old//2, old-(old//2)]
+            a, b = old//2, old-(old//2)
 
-            n = n[:s] + list_to_str(new) + n[e:]
-            return True, eval(n)
+            n = n[:s] + f'[{a},{b}]' + n[e:]
+            return True, n
 
-    return False, eval(n)
+    return False, n
 
 def reduce_snailfish(n):
+    n = str(n).replace(' ', '')
+
     while True:
         did_something, n = explode_snailfish(n)
         if did_something: continue
@@ -105,7 +100,7 @@ def reduce_snailfish(n):
         did_something, n = split_snailfish(n)
         if not did_something: break
 
-    return n
+    return eval(n)
 
 def add_snailfish(a, b):
     return reduce_snailfish([a, b])
