@@ -36,9 +36,14 @@ def enhance_once(image, enhancement):
     new_image = set()
     for x in range(min_x-1, max_x+1+1):
         for y in range(min_y-1, max_y+1+1):
-            s = ''.join(str(int((x+dx, y+dy) in image)) for dx, dy in mov9)
-            idx = int(s, 2)
+            bits = []
+            for dx, dy in mov9:
+                px, py = x+dx, y+dy
+                bit = ((px, py) in image)
 
+                bits.append(int(bit))
+
+            idx = int(''.join(map(str, bits)), 2)
             if enhancement[idx] == '#':
                 new_image.add((x,y))
 
@@ -47,7 +52,7 @@ def enhance_once(image, enhancement):
 def enhance(image, enhancement, iterations):
     assert iterations % 2 == 0
 
-    for i in range(iterations//2):
+    for _ in range(iterations//2):
         image = enhance_once(image, enhancement)
         image = enhance_once(invert_image(image), invert_enhancement(enhancement))
 
@@ -60,13 +65,9 @@ raw_data = AOCUtils.load_input(20)
 enhancement = raw_data[0]
 raw_image = raw_data[2:]
 
-# assert enhancement[0] == '#' and enhancement[511] == '.'
-
-size_x, size_y = len(raw_image), len(raw_image[0])
-
 image = set()
-for x in range(size_x):
-    for y in range(size_y):
+for x in range(len(raw_image)):
+    for y in range(len(raw_image[0])):
         if raw_image[x][y] == '#':
             image.add((x, y))
 
