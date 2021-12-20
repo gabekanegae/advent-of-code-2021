@@ -50,11 +50,18 @@ def enhance_once(image, enhancement):
     return new_image
 
 def enhance(image, enhancement, iterations):
-    assert iterations % 2 == 0
+    # All inputs seem to have this flipping behavior, which requires
+    # an even number of iterations to produce a finite output
+    if enhancement[0] == '#' and enhancement[511] == '.':
+        assert iterations % 2 == 0
 
-    for _ in range(iterations//2):
-        image = enhance_once(image, enhancement)
-        image = enhance_once(invert_image(image), invert_enhancement(enhancement))
+        for _ in range(iterations//2):
+            image = enhance_once(image, enhancement)
+            image = enhance_once(invert_image(image), invert_enhancement(enhancement))
+    else:
+        # However, the example doesn't flip at all - so just enhance it normally
+        for _ in range(iterations):
+            image = enhance_once(image, enhancement)
 
     return len(image)
 
