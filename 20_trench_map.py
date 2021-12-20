@@ -10,60 +10,67 @@ mov9 = [
      (1, -1),  (1, 0),  (1, 1)
     ]
 
-def invert_image(image):
-    px = [i[0] for i in image]
-    py = [i[1] for i in image]
-    min_x, max_x = min(px), max(px)
-    min_y, max_y = min(py), max(py)
+class Image:
+    def __init__(self, raw_image):
+        # Store lit pixels when not flipped, and unlit pixels when flipped
+        self.pixels = set()
+        for x in range(len(raw_image)):
+            for y in range(len(raw_image[0])):
+                if raw_image[x][y] == '#':
+                    self.pixels.add((x, y))
 
-    inverted_image = set()    
-    for x in range(min_x, max_x+1):
-        for y in range(min_y, max_y+1):
-            if (x, y) not in image:
-                inverted_image.add((x, y))
+        self.flipped = False
 
-    return inverted_image
+    @property
+    def bounding_box(self):
+        px = [i[0] for i in self.pixels]
+        py = [i[1] for i in self.pixels]
+        return min(px), max(px), min(py), max(py)
 
-def invert_enhancement(enhancement):
-    return ''.join(reversed(enhancement))
+    @property
+    def lit_pixels_count(self):
+        # If image is flipped, it has infinite lit pixels
+        return len(self.pixels) if not self.flipped else float('inf')
 
-def enhance_once(image, enhancement):
-    px = [i[0] for i in image]
-    py = [i[1] for i in image]
-    min_x, max_x = min(px), max(px)
-    min_y, max_y = min(py), max(py)
+    def _invert(self):
+        min_x, max_x, min_y, max_y = self.bounding_box
 
-    new_image = set()
-    for x in range(min_x-1, max_x+1+1):
-        for y in range(min_y-1, max_y+1+1):
-            bits = []
-            for dx, dy in mov9:
-                px, py = x+dx, y+dy
-                bit = ((px, py) in image)
+        flipped_pixels = set()    
+        for x in range(min_x, max_x+1):
+            for y in range(min_y, max_y+1):
+                if (x, y) not in self.pixels:
+                    flipped_pixels.add((x, y))
 
-                bits.append(int(bit))
+        self.pixels = flipped_pixels
+        self.flipped = not self.flipped
 
-            idx = int(''.join(map(str, bits)), 2)
-            if enhancement[idx] == '#':
-                new_image.add((x,y))
+    def enhance(self, enhancement):
+        min_x, max_x, min_y, max_y = self.bounding_box
 
-    return new_image
+        new_pixels = set()
+        for x in range(min_x-1, max_x+1+1):
+            for y in range(min_y-1, max_y+1+1):
+                bits = []
+                for dx, dy in mov9:
+                    # If flipped, flip bits
+                    bit = ((x+dx, y+dy) in self.pixels) ^ self.flipped
+                    bits.append(int(bit))
 
-def enhance(image, enhancement, iterations):
-    # All inputs seem to have this flipping behavior, which requires
-    # an even number of iterations to produce a finite output
-    if enhancement[0] == '#' and enhancement[511] == '.':
-        assert iterations % 2 == 0
+                idx = int(''.join(map(str, bits)), 2)
+                if enhancement[idx] == '#':
+                    new_pixels.add((x,y))
 
-        for _ in range(iterations//2):
-            image = enhance_once(image, enhancement)
-            image = enhance_once(invert_image(image), invert_enhancement(enhancement))
-    else:
-        # However, the example doesn't flip at all - so just enhance it normally
-        for _ in range(iterations):
-            image = enhance_once(image, enhancement)
+        self.pixels = new_pixels
 
-    return len(image)
+        # This check is not needed for the actual input (it's true for every
+        # real input), but this makes it work for any enhancement that may
+        # not have the flip behavior (like the example given)
+        has_flip_behavior = (enhancement[2**0 - 1] == '#' and enhancement[2**9 - 1] == '.')
+        if has_flip_behavior:
+            if self.flipped:
+                self.flipped = False
+            else:
+                self._invert()
 
 ##############################
 
@@ -72,14 +79,16 @@ raw_data = AOCUtils.load_input(20)
 enhancement = raw_data[0]
 raw_image = raw_data[2:]
 
-image = set()
-for x in range(len(raw_image)):
-    for y in range(len(raw_image[0])):
-        if raw_image[x][y] == '#':
-            image.add((x, y))
+image = Image(raw_image)
+for _ in range(2):
+    image.enhance(enhancement)
 
-print(f'Part 1: {enhance(image, enhancement, 2)}')
+print(f'Part 1: {image.lit_pixels_count}')
 
-print(f'Part 2: {enhance(image, enhancement, 50)}')
+image = Image(raw_image)
+for _ in range(50):
+    image.enhance(enhancement)
+
+print(f'Part 2: {image.lit_pixels_count}')
 
 AOCUtils.print_time_taken()
