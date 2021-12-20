@@ -10,20 +10,32 @@ mov9 = [
      (1, -1),  (1, 0),  (1, 1)
     ]
 
-# Input is 100x100, grows 1 every iteration,
-# so 150x150 should handle 50 iterations
-BOUNDARY = 150
+def invert_image(image):
+    px = [i[0] for i in image]
+    py = [i[1] for i in image]
+    min_x, max_x = min(px), max(px)
+    min_y, max_y = min(py), max(py)
+
+    inverted_image = set()    
+    for x in range(min_x, max_x+1):
+        for y in range(min_y, max_y+1):
+            if (x, y) not in image:
+                inverted_image.add((x, y))
+
+    return inverted_image
+
+def invert_enhancement(enhancement):
+    return ''.join(reversed(enhancement))
 
 def enhance_once(image, enhancement):
     px = [i[0] for i in image]
     py = [i[1] for i in image]
-
-    min_x, max_x = min(px+[-BOUNDARY]), max(px+[BOUNDARY])
-    min_y, max_y = min(py+[-BOUNDARY]), max(py+[BOUNDARY])
+    min_x, max_x = min(px), max(px)
+    min_y, max_y = min(py), max(py)
 
     new_image = set()
-    for x in range(min_x-3, max_x+1+3):
-        for y in range(min_y-3, max_y+1+3):
+    for x in range(min_x-1, max_x+1+1):
+        for y in range(min_y-1, max_y+1+1):
             s = ''.join(str(int((x+dx, y+dy) in image)) for dx, dy in mov9)
             idx = int(s, 2)
 
@@ -37,11 +49,7 @@ def enhance(image, enhancement, iterations):
 
     for i in range(iterations//2):
         image = enhance_once(image, enhancement)
-        image = enhance_once(image, enhancement)
-        for x,y in image.copy():
-            if abs(x) > BOUNDARY or abs(y) > BOUNDARY:
-                image.discard((x,y))
-        print(2+i*2, len(image))
+        image = enhance_once(invert_image(image), invert_enhancement(enhancement))
 
     return len(image)
 
