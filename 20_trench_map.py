@@ -72,6 +72,17 @@ class Image:
             else:
                 self._invert()
 
+    def __repr__(self):
+        min_x, max_x, min_y, max_y = self.bounding_box
+        
+        s = []
+        for x in range(min_x, max_x+1):
+            for y in range(min_y, max_y+1):
+                s.append('#' if ((x, y) in self.pixels) ^ self.flipped else '.')
+            s.append('\n')
+
+        return ''.join(s)
+
 ##############################
 
 raw_data = AOCUtils.load_input(20)
@@ -82,12 +93,14 @@ raw_image = raw_data[2:]
 image = Image(raw_image)
 for _ in range(2):
     image.enhance(enhancement)
+    # print(image)
 
 print(f'Part 1: {image.lit_pixels_count}')
 
 image = Image(raw_image)
 for _ in range(50):
     image.enhance(enhancement)
+    # print(image)
 
 print(f'Part 2: {image.lit_pixels_count}')
 
