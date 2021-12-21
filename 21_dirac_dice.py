@@ -4,8 +4,6 @@
 
 import AOCUtils
 
-memo = dict()
-
 def play_practice_game(p1_pos, p2_pos):
     player_pos = [p1_pos, p2_pos]
     player_score = [0, 0]
@@ -25,27 +23,30 @@ def play_practice_game(p1_pos, p2_pos):
 
 roll_table_3d6 = {3: 1, 4: 3, 5: 6, 6: 7, 7: 6, 8: 3, 9: 1}
 
-def get_wins(p1_pos, p2_pos, p1_score, p2_score):
+memo = dict()
+
+def get_wins(p1_pos, p1_score, p2_pos, p2_score):
     if p1_score >= 21: return (1, 0)
     if p2_score >= 21: return (0, 1)
 
-    state = (p1_pos, p2_pos, p1_score, p2_score)
-
+    state = (p1_pos, p1_score, p2_pos, p2_score)
     if state in memo:
         return memo[state]
 
-    wins = (0, 0)
+    p1_wins, p2_wins = 0, 0
     for steps, freq in roll_table_3d6.items():
         new_p1_pos, new_p1_score = p1_pos, p1_score
 
         new_p1_pos = ((new_p1_pos + steps - 1) % 10) + 1
         new_p1_score += new_p1_pos
 
-        p1_wins, p2_wins = get_wins(p2_pos, new_p1_pos, p2_score, new_p1_score)
-        wins = (wins[0] + p2_wins * freq, wins[1] + p1_wins * freq)
+        new_p1_wins, new_p2_wins = get_wins(p2_pos, p2_score, new_p1_pos, new_p1_score)
 
-    memo[state] = wins
-    return wins
+        p1_wins += new_p2_wins * freq
+        p2_wins += new_p1_wins * freq
+
+    memo[state] = (p1_wins, p2_wins)
+    return (p1_wins, p2_wins)
 
 ##############################
 
@@ -55,6 +56,6 @@ start_pos = tuple(int(line.split()[-1]) for line in raw_start_pos)
 
 print(f'Part 1: {play_practice_game(start_pos[0], start_pos[1])}')
 
-print(f'Part 2: {max(get_wins(start_pos[0], start_pos[1], 0, 0))}')
+print(f'Part 2: {max(get_wins(start_pos[0], 0, start_pos[1], 0))}')
 
 AOCUtils.print_time_taken()
