@@ -6,82 +6,40 @@ from itertools import permutations
 from functools import reduce
 import AOCUtils
 
-def sum_left(n, i, to_sum):
-    # Grab end of value
-    e = i
-    while e >= 0 and not n[e].isnumeric(): e -= 1
-    if e < 0: return n # OOB, no value to add to
-
-    # Find start of value
-    s = e
-    if n[s-1].isnumeric(): s -= 1 # May be two digits
-    e += 1
-
-    # Sum to value and replace it
-    new = int(n[s:e]) + to_sum
-    return n[:s] + str(new) + n[e:]
-
-def sum_right(n, i, to_sum):
-    # Grab start of value
-    s = i
-    while s < len(n) and not n[s].isnumeric(): s += 1
-    if s >= len(n): return n # OOB, no value to add to
-
-    # Find end of value
-    e = s
-    if n[e+1].isnumeric(): e += 1 # May be two digits
-    e += 1
-
-    # Sum to value and replace it
-    new = int(n[s:e]) + to_sum
-    return n[:s] + str(new) + n[e:]
-
 def explode_snailfish(n):
-    level = 0
-    for i in range(len(n)):
-        if n[i] == '[': level += 1
-        elif n[i] == ']': level -= 1
+    for i, (x, x_level) in enumerate(n[:-1]):
+        if x_level < 5:
+            continue
 
-        if level < 5: continue
+        y, _ = n[i+1]
 
-        # Grab pair start and end
-        s = i
-        e = i
-        while n[e] != ']': e += 1
-        e += 1
+        insert = []
+        if i > 0:
+            left_ele, left_level = n[i-1]
+            insert.append((left_ele + x, left_level))
+        insert.append((0, x_level-1))
+        if i+1 < len(n)-1:
+            right_ele, right_level = n[i+2]
+            insert.append((right_ele + y, right_level))
 
-        # Eval pair
-        pair = eval(n[s:e])
-        
-        # Replace pair with 0 
-        n = n[:s] + '0' + n[e:]
-
-        # Sum values
-        n = sum_right(n, i+1, pair[1])
-        n = sum_left(n, i-1, pair[0])
-
+        n = n[:max(0, i-1)] + insert + n[i+3:]
         return True, n
 
     return False, n
 
 def split_snailfish(n):
-    for i in range(len(n)-1):
-        s, e = i, i+2 # Assumes value will always be two digits
+    for i, (ele, level) in enumerate(n):
+        if ele < 10: continue
 
-        if not n[s:e].isnumeric(): continue
-        
-        old = int(n[s:e])
-        a = old // 2
-        b = old - a
+        a = ele // 2
+        b = ele - a
 
-        n = n[:s] + f'[{a},{b}]' + n[e:]
+        n = n[:i] + [(a, level+1), (b, level+1)] + n[i+1:]
         return True, n
 
     return False, n
 
 def reduce_snailfish(n):
-    n = str(n).replace(' ', '')
-
     while True:
         did_something, n = explode_snailfish(n)
         if did_something: continue
@@ -89,20 +47,59 @@ def reduce_snailfish(n):
         did_something, n = split_snailfish(n)
         if not did_something: break
 
-    return eval(n)
+    return n
 
 def add_snailfish(a, b):
-    return reduce_snailfish([a, b])
+    return reduce_snailfish([(ele, level+1) for ele, level in a+b])
+
+def flatten_snalfish_number(n):
+    flat_number = []
+
+    level = 0
+
+    i = 0
+    while i < len(n):
+        if n[i] == '[': level += 1
+        elif n[i] == ']': level -= 1
+        
+        j = i
+        while j < len(n) and n[j].isnumeric():
+            j += 1
+
+        if j != i:
+            flat_number.append((int(n[i:j]), level))
+
+        i += 1
+
+    return flat_number
 
 def magnitude(n):
-    if isinstance(n, int):
-        return n
+    to_be_done = list(reversed(n))
+    stack = [to_be_done.pop()]
 
-    return 3 * magnitude(n[0]) + 2 * magnitude(n[1])
+    while to_be_done:
+        cur_ele, cur_level = to_be_done.pop()
+        prev_ele, prev_level = stack.pop()
+
+        if cur_level == prev_level:
+            stack.append((3 * prev_ele + 2 * cur_ele, cur_level - 1))
+
+            while len(stack) > 1 and stack[-1][1] == stack[-2][1]:
+                cur_ele, cur_level = stack.pop()
+                prev_ele, prev_level = stack.pop()
+
+                stack.append((3 * prev_ele + 2 * cur_ele, cur_level - 1))
+        else:
+            stack.append((prev_ele, prev_level))
+            stack.append((cur_ele, cur_level))
+
+    return stack[0][0]
 
 #############################
 
-snailfish_numbers = list(map(eval, AOCUtils.load_input(18)))
+raw_snailfish_numbers = AOCUtils.load_input(18)
+
+snailfish_numbers = list(map(flatten_snalfish_number, raw_snailfish_numbers))
 
 final_sum = reduce(add_snailfish, snailfish_numbers)
 
