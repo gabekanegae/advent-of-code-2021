@@ -14,18 +14,19 @@ def explode_snailfish(n):
         if x.level < 5:
             continue
 
-        y, _ = n[i+1]
+        j = i+1
+        y = n[j]
 
         insert = []
         if i > 0:
             left = n[i-1]
             insert.append(Element(left.val + x.val, left.level))
         insert.append(Element(0, x.level-1))
-        if i+1 < len(n)-1:
-            right = n[i+2]
+        if j < len(n)-1:
+            right = n[j+1]
             insert.append(Element(right.val + y.val, right.level))
 
-        n = n[:max(0, i-1)] + insert + n[i+3:]
+        n = n[:max(0, i-1)] + insert + n[j+1+1:]
         return True, n
 
     return False, n
@@ -57,12 +58,10 @@ def add_snailfish(a, b):
     return reduce_snailfish(c)
 
 def flatten_snalfish_number(n):
-    flat_number = []
+    flat_n = []
 
     level = 0
-
-    i = 0
-    while i < len(n):
+    for i in range(len(n)):
         if n[i] == '[': level += 1
         elif n[i] == ']': level -= 1
         
@@ -72,33 +71,22 @@ def flatten_snalfish_number(n):
 
         if j != i:
             ele = Element(int(n[i:j]), level)
-            flat_number.append(ele)
+            flat_n.append(ele)
 
-        i += 1
-
-    return flat_number
+    return flat_n
 
 def magnitude(n):
     to_be_done = list(reversed(n))
-    stack = [to_be_done.pop()]
+    stack = []
 
     while to_be_done:
-        cur = to_be_done.pop()
-        prev = stack.pop()
+        stack.append(to_be_done.pop())
+        while len(stack) > 1 and stack[-1].level == stack[-2].level:
+            cur = stack.pop()
+            prev = stack.pop()
 
-        if cur.level == prev.level:
             new = Element(3 * prev.val + 2 * cur.val, cur.level - 1)
             stack.append(new)
-
-            while len(stack) > 1 and stack[-1].level == stack[-2].level:
-                cur = stack.pop()
-                prev = stack.pop()
-
-                new = Element(3 * prev.val + 2 * cur.val, cur.level - 1)
-                stack.append(new)
-        else:
-            stack.append(prev)
-            stack.append(cur)
 
     return stack[0].val
 
