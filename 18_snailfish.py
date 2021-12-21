@@ -4,23 +4,26 @@
 
 from itertools import permutations
 from functools import reduce
+from collections import namedtuple
 import AOCUtils
 
+Element = namedtuple('Element', ['val', 'level'])
+
 def explode_snailfish(n):
-    for i, (x, x_level) in enumerate(n[:-1]):
-        if x_level < 5:
+    for i, x in enumerate(n[:-1]):
+        if x.level < 5:
             continue
 
         y, _ = n[i+1]
 
         insert = []
         if i > 0:
-            left_ele, left_level = n[i-1]
-            insert.append((left_ele + x, left_level))
-        insert.append((0, x_level-1))
+            left = n[i-1]
+            insert.append(Element(left.val + x.val, left.level))
+        insert.append(Element(0, x.level-1))
         if i+1 < len(n)-1:
-            right_ele, right_level = n[i+2]
-            insert.append((right_ele + y, right_level))
+            right = n[i+2]
+            insert.append(Element(right.val + y.val, right.level))
 
         n = n[:max(0, i-1)] + insert + n[i+3:]
         return True, n
@@ -28,13 +31,13 @@ def explode_snailfish(n):
     return False, n
 
 def split_snailfish(n):
-    for i, (ele, level) in enumerate(n):
-        if ele < 10: continue
+    for i, ele in enumerate(n):
+        if ele.val < 10: continue
 
-        a = ele // 2
-        b = ele - a
+        a = Element(ele.val//2, ele.level+1)
+        b = Element(ele.val - ele.val//2, ele.level+1)
 
-        n = n[:i] + [(a, level+1), (b, level+1)] + n[i+1:]
+        n = n[:i] + [a, b] + n[i+1:]
         return True, n
 
     return False, n
@@ -50,7 +53,8 @@ def reduce_snailfish(n):
     return n
 
 def add_snailfish(a, b):
-    return reduce_snailfish([(ele, level+1) for ele, level in a+b])
+    c = [Element(ele.val, ele.level+1) for ele in a+b]
+    return reduce_snailfish(c)
 
 def flatten_snalfish_number(n):
     flat_number = []
@@ -67,7 +71,8 @@ def flatten_snalfish_number(n):
             j += 1
 
         if j != i:
-            flat_number.append((int(n[i:j]), level))
+            ele = Element(int(n[i:j]), level)
+            flat_number.append(ele)
 
         i += 1
 
@@ -78,22 +83,24 @@ def magnitude(n):
     stack = [to_be_done.pop()]
 
     while to_be_done:
-        cur_ele, cur_level = to_be_done.pop()
-        prev_ele, prev_level = stack.pop()
+        cur = to_be_done.pop()
+        prev = stack.pop()
 
-        if cur_level == prev_level:
-            stack.append((3 * prev_ele + 2 * cur_ele, cur_level - 1))
+        if cur.level == prev.level:
+            new = Element(3 * prev.val + 2 * cur.val, cur.level - 1)
+            stack.append(new)
 
-            while len(stack) > 1 and stack[-1][1] == stack[-2][1]:
-                cur_ele, cur_level = stack.pop()
-                prev_ele, prev_level = stack.pop()
+            while len(stack) > 1 and stack[-1].level == stack[-2].level:
+                cur = stack.pop()
+                prev = stack.pop()
 
-                stack.append((3 * prev_ele + 2 * cur_ele, cur_level - 1))
+                new = Element(3 * prev.val + 2 * cur.val, cur.level - 1)
+                stack.append(new)
         else:
-            stack.append((prev_ele, prev_level))
-            stack.append((cur_ele, cur_level))
+            stack.append(prev)
+            stack.append(cur)
 
-    return stack[0][0]
+    return stack[0].val
 
 #############################
 
