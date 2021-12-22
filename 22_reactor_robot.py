@@ -23,63 +23,49 @@ def intersection(a, b):
 
     return None
 
+def count_cubes_on(steps):
+    # Keep dict of {cuboid: count} per the inclusion–exclusion principle
+    cuboids = defaultdict(int)
+    for state, (x_min, x_max), (y_min, y_max), (z_min, z_max) in steps:
+        new_region = Cuboid(x_min, x_max, y_min, y_max, z_min, z_max)
+
+        for existing_region in list(cuboids.keys()):
+            intersecting_region = intersection(new_region, existing_region)
+
+            # Cancel out the existing region
+            if intersecting_region:
+                cuboids[intersecting_region] -= cuboids[existing_region]
+
+        if state == 'on':
+            cuboids[new_region] += 1
+
+    cubes_on = 0
+    for cuboid, count in cuboids.items():
+        x_length = (cuboid.x_max - cuboid.x_min + 1)
+        y_length = (cuboid.y_max - cuboid.y_min + 1)
+        z_length = (cuboid.z_max - cuboid.z_min + 1)
+        volume = x_length * y_length * z_length
+
+        cubes_on += volume * count
+
+    return cubes_on
+
 #################################
 
 raw_steps = AOCUtils.load_input(22)
 
-init_steps, reboot_steps = [], []
+steps = []
 for raw_step in raw_steps:
     raw_step = raw_step.split()
 
     coords = [list(map(int, s[2:].split('..'))) for s in raw_step[1].split(',')]
     step = tuple([raw_step[0]] + coords)
 
-    if all(all(abs(c) <= 50 for c in p) for p in coords):
-        init_steps.append(step)
-    else:
-        reboot_steps.append(step)
+    steps.append(step)
 
-init_cubes_on = set()
-for state, (x_min, x_max), (y_min, y_max), (z_min, z_max) in init_steps:
-    if state == 'on':
-        for x in range(x_min, x_max+1):
-            for y in range(y_min, y_max+1):
-                for z in range(z_min, z_max+1):
-                    init_cubes_on.add((x, y, z))
-    elif state == 'off':
-        for x in range(x_min, x_max+1):
-            for y in range(y_min, y_max+1):
-                for z in range(z_min, z_max+1):
-                    init_cubes_on.discard((x, y, z))
+init_steps = [step for step in steps if all(all(abs(c) <= 50 for c in p) for p in step[1:])]
+print(f'Part 1: {count_cubes_on(init_steps)}')
 
-print(f'Part 1: {len(init_cubes_on)}')
-
-steps = init_steps + reboot_steps
-
-# Keep dict of {cuboid: count} per the inclusion–exclusion principle
-cuboids = defaultdict(int)
-for state, (x_min, x_max), (y_min, y_max), (z_min, z_max) in steps:
-    new_region = Cuboid(x_min, x_max, y_min, y_max, z_min, z_max)
-
-    for existing_region in list(cuboids.keys()):
-        intersecting_region = intersection(new_region, existing_region)
-
-        # Cancel out the existing region
-        if intersecting_region:
-            cuboids[intersecting_region] -= cuboids[existing_region]
-
-    if state == 'on':
-        cuboids[new_region] += 1
-
-cubes_on = 0
-for cuboid, count in cuboids.items():
-    x_length = (cuboid.x_max - cuboid.x_min + 1)
-    y_length = (cuboid.y_max - cuboid.y_min + 1)
-    z_length = (cuboid.z_max - cuboid.z_min + 1)
-    volume = x_length * y_length * z_length
-
-    cubes_on += volume * count
-
-print(f'Part 2: {cubes_on}')
+print(f'Part 2: {count_cubes_on(steps)}')
 
 AOCUtils.print_time_taken()
