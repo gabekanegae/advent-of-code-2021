@@ -2,50 +2,54 @@
 # --- Day 25: Sea Cucumber --- #
 ################################
 
-from copy import deepcopy
 import AOCUtils
 
-def move(state):
-    new_state = deepcopy(state)
-    for i in range(size_x):
-        for j in range(size_y):
-            if state[i][j] == '>':
-                if state[i][(j+1)%size_y] == '.':
-                    new_state[i][j] = '.'
-                    new_state[i][(j+1)%size_y] = '>'
-
-    state = deepcopy(new_state)
-    for i in range(size_x):
-        for j in range(size_y):
-            if state[i][j] == 'v':
-                if state[(i+1)%size_x][j] == '.':
-                    new_state[i][j] = '.'
-                    new_state[(i+1)%size_x][j] = 'v'
-
-    return new_state
+moves = {'>': lambda x, y: (x, (y+1)%size_y),
+         'v': lambda x, y: ((x+1)%size_x, y)}
 
 ################################
 
-raw_cur_map = AOCUtils.load_input(25)
+raw_sea_cucumbers = AOCUtils.load_input(25)
 
-cur_map = list(map(list, raw_cur_map))
+size_x = len(raw_sea_cucumbers)
+size_y = len(raw_sea_cucumbers[0])
 
-size_x = len(cur_map)
-size_y = len(cur_map[0])
+sea_cucumbers = dict()
+for x in range(size_x):
+    for y in range(size_y):
+        if raw_sea_cucumbers[x][y] != '.':
+            sea_cucumbers[(x, y)] = raw_sea_cucumbers[x][y]
 
 steps = 0
 while True:
     steps += 1
-    start_map = deepcopy(cur_map)
+    changed = False
 
-    # for i in range(size_x):
-    #     for j in range(size_y):
-    #         print(end=cur_map[i][j])
+    for cucumber, nxt_fn in moves.items():
+        update = dict()
+        remove = set()
+
+        for cur in sea_cucumbers:
+            nxt = nxt_fn(*cur)
+
+            if sea_cucumbers[cur] == cucumber:
+                if nxt not in sea_cucumbers:
+                    remove.add(cur)
+                    update[nxt] = cucumber
+
+        sea_cucumbers.update(update)
+        for i in remove: sea_cucumbers.pop(i)
+
+        changed |= bool(update) or bool(remove)
+
+    # for x in range(size_x):
+    #     for y in range(size_y):
+    #         cur = (x, y)
+    #         print(end=(sea_cucumbers[cur] if cur in sea_cucumbers else '.'))
     #     print()
     # input()
-    
-    cur_map =  move(cur_map)
-    if cur_map == start_map:
+
+    if not changed:
         break
 
 print(f'Part 1: {steps}')
